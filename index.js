@@ -1,10 +1,12 @@
 const {
   app,
   globalShortcut,
+  ipcMain,
   screen,
   BrowserWindow,
   Menu,
-  Tray } = require('electron');
+  Tray, 
+  clipboard} = require('electron');
 const { generateHistoryContent, History } = require('./history');
 const {ClipboardMonitor } = require('./clipboardMonitor');
 
@@ -12,38 +14,54 @@ const globals = {
   tray: null,
   history: new History(),
   monitor: new ClipboardMonitor(),
+  historyWindow: null,
 };
 
 function showHistory () {
   const pos = screen.getCursorScreenPoint();
 
-  const win = new BrowserWindow({
-    width: 200,
-    height: 200,
-    x: pos.x,
-    y: pos.y,
-    frame: false,
-    webPreferences: {
-      nodeIntegration: true,
-      worldSafeExecuteJavaScript: true,
-    },
-  });
+  globals.historyWindow.webContents.send('update-items', globals.history.items);
 
-  win.on("blur", () => {
-    win.close();
-  });
-
-  //const html = '<html><body>Hello World!</body></html>';
-
-  const html = generateHistoryContent(globals.history);
-  win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
-  //win.loadFile('table.html');
+  globals.historyWindow.setPosition(pos.x, pos.y);
+  globals.historyWindow.show();
 }
+
+const fromBase64 = (str) => {
+  return Buffer.from(str, 'base64').toString('utf8');
+}
+
+ipcMain.on('history-page-is-ready', (event, arg) => {
+});
+
+ipcMain.on('selected-item-in-base64', (event, arg) => {
+  const value = fromBase64(arg);
+  clipboard.writeText(value);
+  globals.historyWindow.hide();
+});
+
+ipcMain.on('log', (event, arg) => {
+  console.log(arg);
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  globals.historyWindow = new BrowserWindow({
+    width: 200,
+    height: 200,
+    frame: false,
+    show: false,
+    webPreferences: {
+      nodeIntegration: true,
+      worldSafeExecuteJavaScript: true,
+    },
+  });
+  globals.historyWindow.on("blur", () => {
+    globals.historyWindow.hide();
+  });
+  globals.historyWindow.loadFile('table.html');
+
   globals.tray = new Tray('/Users/joemiller/Downloads/blue_curve.png');
   const trayMenu = Menu.buildFromTemplate([
     { label: 'About',           role: 'about' },

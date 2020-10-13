@@ -8,8 +8,10 @@ table {
 }
 
 th, td {
-  padding: 0px;
+  padding: 1px;
   text-align: left;
+  font-family: monospace;
+  white-space: nowrap;
   border-bottom: 1px solid #ddd;
 }
 
@@ -17,7 +19,33 @@ tr:hover {background-color:#f5f5f5;}
 </style>
 </head>
 <body>
-<table>
+  <script>
+    const { ipcRenderer } = require('electron');
+
+    const escapeBrackets = (str) => {
+      return str.replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+    }
+
+    const toBase64 = (str) => {
+      return Buffer.from(str, 'utf8').toString('base64');
+    }
+
+    const fromBase64 = (str) => {
+      return Buffer.from(str, 'base64').toString('utf8');
+    }
+
+    function selectItem(item) {
+      ipcRenderer.send('selected-item-in-base64', item);
+    }
+
+    ipcRenderer.on('update-items', (event, arg) => {
+      const table = document.getElementById('items');
+      table.innerHTML = arg.map(v => `<tr onclick="selectItem('${toBase64(v)}')"><td>${escapeBrackets(v)}</td></tr>`).join('');
+    });
+
+    ipcRenderer.send('history-page-is-ready');
+  </script>
+<table id="items">
   <tr>
     <td>Value 1</td>
   </tr>
