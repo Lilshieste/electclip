@@ -59,6 +59,7 @@ app.whenReady().then(() => {
   });
   globals.historyWindow.on("blur", () => {
     globals.historyWindow.hide();
+    app.hide();
   });
   globals.historyWindow.loadFile('table.html');
 
