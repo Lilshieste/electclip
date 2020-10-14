@@ -33,9 +33,13 @@ const fromBase64 = (str) => {
 ipcMain.on('history-page-is-ready', (event, arg) => {
 });
 
-ipcMain.on('selected-item-in-base64', (event, arg) => {
-  const value = fromBase64(arg);
+ipcMain.on('selected-index', (event, arg) => {
+  const value = globals.history.items[arg];
   clipboard.writeText(value);
+  globals.historyWindow.hide();
+});
+
+ipcMain.on('cancel', (event, arg) => {
   globals.historyWindow.hide();
 });
 

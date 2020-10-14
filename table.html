@@ -38,10 +38,74 @@ tr:hover {background-color:#f5f5f5;}
       ipcRenderer.send('selected-item-in-base64', item);
     }
 
+    function selectIndex(index) {
+      ipcRenderer.send('selected-index', index);
+    }
+
+    function cancel() {
+      ipcRenderer.send('cancel');
+    }
+
+    function log(msg) {
+      ipcRenderer.send('log', msg);
+    }
+
+    function focusFirst() {
+      const table = document.getElementById('items');
+      if(table.rows.length > 0) {
+        table.rows[0].focus();
+      }
+    }
+
+    function focusLast() {
+      const table = document.getElementById('items');
+      if(table.rows.length > 0) {
+        table.rows[table.rows.length - 1].focus();
+      }
+    }
+
+    function focusNext() {
+      const current = document.activeElement;
+      
+      if(current.nextElementSibling) {
+        current.nextElementSibling.focus();
+      } else {
+        focusFirst();
+      }
+    }
+
+    function focusPrev() {
+      const current = document.activeElement;
+
+      if(current.previousElementSibling) {
+        current.previousElementSibling.focus();
+      } else {
+        focusLast();
+      }
+    }
+
     ipcRenderer.on('update-items', (event, arg) => {
       const table = document.getElementById('items');
-      table.innerHTML = arg.map(v => `<tr onclick="selectItem('${toBase64(v)}')"><td>${escapeBrackets(v)}</td></tr>`).join('');
+      table.innerHTML = arg.map((v, index) => `<tr tabIndex="0" onclick="selectIndex('${index}')"><td>${escapeBrackets(v)}</td></tr>`).join('');
+      focusFirst();
     });
+
+    document.onkeydown = e => {
+      switch(e.code) {
+        case 'Enter':
+          document.activeElement.click();
+          break;
+        case 'Escape':
+          cancel();
+          break;
+        case 'ArrowUp':
+          focusPrev();
+          break;
+        case 'ArrowDown':
+          focusNext();
+          break;
+      }
+    };
 
     ipcRenderer.send('history-page-is-ready');
   </script>
