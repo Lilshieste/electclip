@@ -1,5 +1,4 @@
-const { clipboard } = require('electron');
-const { ClipboardMonitor } = require('../src/clipboardMonitor');
+import { ClipboardMonitor } from '../src/clipboardMonitor';
 
 describe('ClipboardMonitor', () => {
   test('checkForNewClipboardEntry emits copied event if clipboardText is different from last time', () => {

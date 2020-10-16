@@ -1,9 +1,11 @@
-module.exports.History = class {
+export class History {
+  public items: any[];
+  
   constructor() {
     this.items = [];
   }
 
-  addItem(item) {
+  addItem(item: any) {
     this.items.splice(0, 0, item);
   }
 };

@@ -1,7 +1,7 @@
 const { EventEmitter } = require('events');
 
-class ClipboardMonitor extends EventEmitter {
-  constructor(clipboard) {
+export class ClipboardMonitor extends EventEmitter {
+  constructor(clipboard: any) {
     super();
     this.previous = null;
     this.timerId = null;
@@ -27,5 +27,3 @@ class ClipboardMonitor extends EventEmitter {
     };
   }
 }
-
-module.exports.ClipboardMonitor = ClipboardMonitor;
