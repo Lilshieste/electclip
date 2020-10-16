@@ -7,13 +7,15 @@ const {
   Menu,
   Tray, 
   clipboard} = require('electron');
-const { generateHistoryContent, History } = require('./history');
-const {ClipboardMonitor } = require('./clipboardMonitor');
+const { History } = require('./history');
+const { ClipboardMonitor } = require('./clipboardMonitor');
 
 const globals = {
-  tray: null,
   history: new History(),
-  monitor: new ClipboardMonitor(),
+  monitor: new ClipboardMonitor(clipboard),
+
+  // Wait to instantiate these until after the app is 'ready'
+  tray: null,
   historyWindow: null,
 };
 
@@ -24,10 +26,6 @@ function showHistory () {
 
   globals.historyWindow.setPosition(pos.x, pos.y);
   globals.historyWindow.show();
-}
-
-const fromBase64 = (str) => {
-  return Buffer.from(str, 'base64').toString('utf8');
 }
 
 ipcMain.on('history-page-is-ready', (event, arg) => {
@@ -47,9 +45,6 @@ ipcMain.on('log', (event, arg) => {
   console.log(arg);
 });
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   globals.historyWindow = new BrowserWindow({
     width: 200,
@@ -65,7 +60,7 @@ app.whenReady().then(() => {
     globals.historyWindow.hide();
     app.hide();
   });
-  globals.historyWindow.loadFile('table.html');
+  globals.historyWindow.loadFile('historyDisplay.html');
 
   globals.tray = new Tray('/Users/joemiller/Downloads/blue_curve.png');
   const trayMenu = Menu.buildFromTemplate([
@@ -74,7 +69,7 @@ app.whenReady().then(() => {
     { label: 'Separator',       type: 'separator'},
     { label: 'Quit',            role: 'quit' },
   ]);
-  globals.tray.setToolTip('Electclip v1.0');
+  globals.tray.setToolTip('Electclip v0.9');
   globals.tray.setContextMenu(trayMenu);
 
   globalShortcut.register('Command+`', () => {
@@ -86,11 +81,6 @@ app.whenReady().then(() => {
   });
 
   globals.monitor.start();
-
-  globals.history.addItem('Value 4');
-  globals.history.addItem('Value 5');
-  globals.history.addItem('Value 6');
-  globals.history.addItem('Value 43');
 });
 
 app.on('window-all-closed', () => {
