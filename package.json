@@ -2,9 +2,9 @@
   "name": "electclip",
   "version": "1.0.0",
   "description": "Cross platform clipboard manager",
-  "main": "build/src/index.js",
+  "main": "./.output/src/index.js",
   "scripts": {
-    "test": "npm run compile && jest ./build",
+    "test": "npm run compile && jest ./.output",
     "start": "npm run compile && electron .",
     "compile": "tsc"
   },
