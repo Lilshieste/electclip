@@ -24,28 +24,17 @@ function showHistory (history: History, historyWindow: BrowserWindow) {
   historyWindow.show();
 }
 
-app.whenReady().then(() => {
-  clipboardMonitor = new ClipboardMonitor(clipboard);
-  history = new History();
-
-  historyWindow = new BrowserWindow({
-    width: 200,
-    height: 200,
-    frame: false,
-    show: false,
-    webPreferences: {
-      nodeIntegration: true,
-      worldSafeExecuteJavaScript: true,
-    },
+function initializeClipboardMonitor(clipboard: Electron.Clipboard) {
+  const monitor = new ClipboardMonitor(clipboard);
+  monitor.on('copied', (value: any) => {
+    history.addItem(value);
   });
 
-  tray = new Tray('/Users/joemiller/Downloads/blue_curve.png');
+  return monitor;
+}
 
-  historyWindow.on("blur", () => {
-    historyWindow.hide();
-    app.hide();
-  });
-
+function initializeSystemTray() {
+  const tray = new Tray('/Users/joemiller/Downloads/blue_curve.png')
   const trayMenu = Menu.buildFromTemplate([
     { label: 'About',         role: 'about' },
     { label: 'History',       click: () => showHistory(history, historyWindow)},
@@ -56,10 +45,30 @@ app.whenReady().then(() => {
   tray.setToolTip('Electclip v0.9');
   tray.setContextMenu(trayMenu);
 
-  clipboardMonitor.on('copied', (value: any) => {
-    history.addItem(value);
+  return tray;
+}
+
+function initializeHistoryWindow() {
+  const win = new BrowserWindow({
+    width: 200,
+    height: 200,
+    frame: false,
+    show: false,
+    webPreferences: {
+      nodeIntegration: true,
+      worldSafeExecuteJavaScript: true,
+    },
   });
 
+  win.on("blur", () => {
+    historyWindow.hide();
+    app.hide();
+  });
+
+  return win;
+}
+
+function initializeAppEventHandlers(clipboardMonitor: ClipboardMonitor) {
   ipcMain.on('history-page-is-ready', (event, arg) => {
   });
   
@@ -86,6 +95,15 @@ app.whenReady().then(() => {
   
   app.on('activate', () => {
   });
+}
+
+app.whenReady().then(() => {
+  history = new History();
+  clipboardMonitor = initializeClipboardMonitor(clipboard);
+  historyWindow = initializeHistoryWindow();
+  tray = initializeSystemTray();
+  
+  initializeAppEventHandlers(clipboardMonitor);
   
   historyWindow.loadFile('src/historyDisplay.html');
   clipboardMonitor.start();
