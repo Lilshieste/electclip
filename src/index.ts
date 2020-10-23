@@ -47,7 +47,7 @@ function initializeClipboardMonitor(clipboard: Electron.Clipboard) {
 }
 
 function initializeSystemTray(history: History, historyWindow: BrowserWindow) {
-  const tray = new Tray('/Users/joemiller/Downloads/blue_curve.png')
+  const tray = new Tray('/Users/joemiller/dev/electclip/img/electclip_icon_24.png')
   const trayMenu = Menu.buildFromTemplate([
     { label: 'About',         role: 'about' },
     { label: 'History',       click: () => showHistory(history, historyWindow)},
