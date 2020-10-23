@@ -86,7 +86,7 @@ tr:hover {background-color:#f5f5f5;}
 
     ipcRenderer.on('update-items', (event, arg) => {
       const table = document.getElementById('items');
-      table.innerHTML = arg.map((v, index) => `<tr tabIndex="0" onclick="selectIndex('${index}')"><td>${escapeBrackets(v)}</td></tr>`).join('');
+      table.innerHTML = arg.map((v, index) => `<tr tabIndex="0" onclick="selectIndex('${index}')"><td>${escapeBrackets(v.item)}</td></tr>`).join('');
       focusFirst();
     });
 

@@ -7,8 +7,10 @@ import {
   Menu,
   Tray, 
   clipboard }  from 'electron';
-import { History } from './history';
+import { History, loadHistory, saveHistory } from './history';
 import { ClipboardMonitor } from './clipboardMonitor';
+
+const HISTORY_FILE = 'electclip.history';
 
 let clipboardMonitor: ClipboardMonitor;
 let history: History;
@@ -24,16 +26,27 @@ function showHistory (history: History, historyWindow: BrowserWindow) {
   historyWindow.show();
 }
 
+const getHistoryFilename = () => `${app.getPath('userData')}/${HISTORY_FILE}`;
+
+async function initializeHistory() {
+  return await loadHistory(getHistoryFilename());
+}
+
+const saveCurrentHistory = async () => {
+  return saveHistory(history, getHistoryFilename());
+}
+
 function initializeClipboardMonitor(clipboard: Electron.Clipboard) {
   const monitor = new ClipboardMonitor(clipboard);
   monitor.on('copied', (value: any) => {
     history.addItem(value);
+    saveCurrentHistory();
   });
 
   return monitor;
 }
 
-function initializeSystemTray() {
+function initializeSystemTray(history: History, historyWindow: BrowserWindow) {
   const tray = new Tray('/Users/joemiller/Downloads/blue_curve.png')
   const trayMenu = Menu.buildFromTemplate([
     { label: 'About',         role: 'about' },
@@ -73,8 +86,9 @@ function initializeAppEventHandlers(clipboardMonitor: ClipboardMonitor) {
   });
   
   ipcMain.on('selected-index', (event, arg) => {
-    const value = history.items[arg];
-    clipboard.writeText(value);
+    const value = history.popItemAt(arg);
+
+    clipboard.writeText(value.item);
     historyWindow.hide();
   });
   
@@ -97,12 +111,12 @@ function initializeAppEventHandlers(clipboardMonitor: ClipboardMonitor) {
   });
 }
 
-app.whenReady().then(() => {
-  history = new History();
+app.whenReady().then(async () => {
+  history = await initializeHistory();
   clipboardMonitor = initializeClipboardMonitor(clipboard);
   historyWindow = initializeHistoryWindow();
-  tray = initializeSystemTray();
-  
+  tray = initializeSystemTray(history, historyWindow);
+
   initializeAppEventHandlers(clipboardMonitor);
   
   historyWindow.loadFile('src/historyDisplay.html');
@@ -110,5 +124,6 @@ app.whenReady().then(() => {
   globalShortcut.register('Command+`', () => {
     showHistory(history, historyWindow);
   });
+
   app.dock.hide();
 });
