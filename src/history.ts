@@ -23,6 +23,8 @@ export const loadHistory = async (filename: string) => {
 
 export class History {
   private maxItems = 200;
+  private whitespaceRegex = new RegExp(/\s/);
+  private passwordRegex = new RegExp(/(?=.{6,})(?=.*[a-z])(?=.*[\d])(?=.*[!@#$%^&*()\-=[\]{},.<>\/'":;`\\?~])/);
 
   public items: HistoryEntry[];
   
@@ -35,15 +37,25 @@ export class History {
     this.items.splice(this.maxItems);
   }
 
+  isPossiblyAPassword(text: any) {
+    return !this.whitespaceRegex.test(text) && this.passwordRegex.test(text);
+  }
+
   addItem(item: any) {
-    const newItem = { item: item } as HistoryEntry;
-    if(!this.items.length) {
-      this.items.push(newItem);
+    if(!this.isPossiblyAPassword(item)) {
+      const newItem = { item: item } as HistoryEntry;
+      if(!this.items.length) {
+        this.items.push(newItem);
+        return true;
+      }
+      else if(this.items[0].item !== item) {
+        this.items.splice(0, 0, newItem);
+        this.prune();
+        return true;
+      }
     }
-    else if(this.items[0].item !== item) {
-      this.items.splice(0, 0, newItem);
-      this.prune();
-    }
+
+    return false;
   }
 
   popItemAt(index: number) {
