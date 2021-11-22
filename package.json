@@ -6,7 +6,7 @@
   "scripts": {
     "test": "npm run compile && jest ./.output",
     "start": "npm run compile && electron .",
-    "compile": "tsc"
+    "compile": "tsc && cp -R img ./.output"
   },
   "repository": {
     "type": "git",

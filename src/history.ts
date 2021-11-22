@@ -36,8 +36,11 @@ export class History {
   }
 
   addItem(item: any) {
-    if(this.items.length && this.items[0].item !== item) {
-      const newItem = { item: item } as HistoryEntry;
+    const newItem = { item: item } as HistoryEntry;
+    if(!this.items.length) {
+      this.items.push(newItem);
+    }
+    else if(this.items[0].item !== item) {
       this.items.splice(0, 0, newItem);
       this.prune();
     }
